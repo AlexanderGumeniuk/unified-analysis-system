@@ -12,23 +12,50 @@ function Login() {
         username,
         password,
       });
-      setMessage(response.data.message);
+      console.log('Register Response:', response);
+      setMessage(response.data.message || 'Registration successful');
     } catch (error) {
-      setMessage(error.response.data.detail);
+      console.log('Register Error:', error.response);
+      if (error.response && error.response.data) {
+        // Если это массив ошибок валидации
+        if (Array.isArray(error.response.data)) {
+          const errorMessages = error.response.data.map(err => err.msg).join(', ');
+          setMessage(errorMessages);
+        } else if (error.response.data.detail) {
+          setMessage(error.response.data.detail);
+        } else {
+          setMessage('An error occurred during registration');
+        }
+      } else {
+        setMessage('Network error during registration');
+      }
     }
   };
 
   const handleLogin = async () => {
     try {
-      const response = await axios.post('http://localhost:8000/login', {
-        username,
-        password,
-      }, {
+      const formData = new URLSearchParams();
+      formData.append('username', username);
+      formData.append('password', password);
+      const response = await axios.post('http://localhost:8000/login', formData, {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       });
+      console.log('Login Response:', response);
       setMessage(`Token: ${response.data.access_token}`);
     } catch (error) {
-      setMessage(error.response.data.detail);
+      console.log('Login Error:', error.response);
+      if (error.response && error.response.data) {
+        if (Array.isArray(error.response.data)) {
+          const errorMessages = error.response.data.map(err => err.msg).join(', ');
+          setMessage(errorMessages);
+        } else if (error.response.data.detail) {
+          setMessage(error.response.data.detail);
+        } else {
+          setMessage('An error occurred during login');
+        }
+      } else {
+        setMessage('Network error during login');
+      }
     }
   };
 

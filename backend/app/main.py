@@ -1,21 +1,31 @@
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
-from .auth import create_user, authenticate_user, create_access_token
+from .auth import create_user, authenticate_user, create_access_token, UserCreate, User  # Импортируем User
 from .database import get_db, Base, engine
 
 app = FastAPI()
+
+# Настройка CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],  # Разрешённый источник
+    allow_credentials=True,
+    allow_methods=["*"],  # Разрешить все методы
+    allow_headers=["*"],  # Разрешить все заголовки
+)
 
 # Создание таблиц в базе данных
 Base.metadata.create_all(bind=engine)
 
 # Регистрация пользователя
 @app.post("/register")
-def register(username: str, password: str, db: Session = Depends(get_db)):
-    db_user = db.query(auth.User).filter(auth.User.username == username).first()
+def register(user: UserCreate, db: Session = Depends(get_db)):
+    db_user = db.query(User).filter(User.username == user.username).first()  # Используем User напрямую
     if db_user:
         raise HTTPException(status_code=400, detail="Username already registered")
-    user = create_user(db, username, password)
+    create_user(db, user.username, user.password)
     return {"message": "User created successfully"}
 
 # Вход пользователя

@@ -4,15 +4,21 @@ from fastapi import Depends, HTTPException, status
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from datetime import datetime, timedelta
+from pydantic import BaseModel
 from .database import Base, get_db
 
 # Настройки JWT
-SECRET_KEY = "your-secret-key"  # Замените на безопасный ключ
+SECRET_KEY = "your-secret-key"  # Замените на безопасный ключ в продакшене
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 # Хеширование паролей
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+# Модель для входных данных (регистрация)
+class UserCreate(BaseModel):
+    username: str
+    password: str
 
 # Модель пользователя в базе данных
 class User(Base):
